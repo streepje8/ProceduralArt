@@ -1,0 +1,21 @@
+#pragma kernel CSMain
+
+int voxelCount;
+struct voxel
+{
+    int type;
+    float3 position;
+};
+
+RWStructuredBuffer<voxel> _VoxelData;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    //Do physics or smtn
+    int ID = id.x + (id.y * (voxelCount/2.0f));
+    voxel currentVoxel = _VoxelData[ID];
+    currentVoxel.type = 0;
+    currentVoxel.position = float3(ID*2.0f,ID*2.0f,1);
+    _VoxelData[ID] = currentVoxel;
+}
