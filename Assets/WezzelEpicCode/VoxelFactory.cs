@@ -43,7 +43,7 @@ public class VoxelFactory : MonoBehaviour
         timer += Time.deltaTime;
         if (timer > 1 / stepsPerSecond)
         {
-            //UpdateVoxels();
+            UpdateVoxels();
             timer = 0;
         }
     }
