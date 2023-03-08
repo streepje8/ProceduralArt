@@ -1,5 +1,8 @@
 #pragma kernel CSMain
 
+float3 position;
+float deltaTime;
+float time;
 int voxelCount;
 struct voxel
 {
@@ -9,13 +12,13 @@ struct voxel
 
 RWStructuredBuffer<voxel> _VoxelData;
 
-[numthreads(8,8,1)]
+[numthreads(32,32,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     //Do physics or smtn
     int ID = id.x + (id.y * (voxelCount/2.0f));
     voxel currentVoxel = _VoxelData[ID];
-    currentVoxel.type = 0;
-    currentVoxel.position = float3(ID*2.0f,ID*2.0f,1);
+    currentVoxel.type = ID;
+    currentVoxel.position = position + float3(sign(position.x) * cos(time + ID + position.z*4)*2,ID,sin(time + ID + position.z*4)*2);
     _VoxelData[ID] = currentVoxel;
 }

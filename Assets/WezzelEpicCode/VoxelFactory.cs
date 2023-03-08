@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 struct Voxel
 {
@@ -28,7 +29,7 @@ public class VoxelFactory : MonoBehaviour
     {
         //Setup shaders
         kernelIndex = voxelProcessor.FindKernel("CSMain");
-        voxelMaterial = new Material(voxelRenderer);
+        if(voxelMaterial == null) voxelMaterial = new Material(voxelRenderer);
         
         //Allocate cubes
         CreateVoxels(cubeCount);
@@ -57,10 +58,14 @@ public class VoxelFactory : MonoBehaviour
         voxelBuffer = new ComputeBuffer(amount, Marshal.SizeOf<Voxel>());
         voxelBuffer.SetData(voxels);
         voxelProcessor.SetInt("voxelCount", amount);
+        UpdateVoxels();
     }
 
     private void UpdateVoxels()
     {
+        voxelProcessor.SetVector("position", transform.position);
+        voxelProcessor.SetFloat("deltaTime", Time.deltaTime);
+        voxelProcessor.SetFloat("time", Time.time);
         voxelProcessor.SetBuffer(kernelIndex,"_VoxelData",voxelBuffer);
         voxelProcessor.Dispatch(kernelIndex,cubeCount/2,cubeCount/2,1);
     }
