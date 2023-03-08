@@ -12,7 +12,7 @@ struct voxel
 
 RWStructuredBuffer<voxel> _VoxelData;
 
-[numthreads(32,32,1)]
+[numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     //Do physics or smtn

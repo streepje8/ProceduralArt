@@ -246,8 +246,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01a79cf42dae0f64e8bdd388bbcd6237, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cubeCount: 100
-  stepsPerSecond: 72
+  cubeCount: 4
+  stepsPerSecond: 60
   voxelRenderer: {fileID: 4800000, guid: 8edd9aa4825d4434da26417793d7f380, type: 3}
   voxelProcessor: {fileID: 7200000, guid: bf489eb275be73e4787bfd27fbc8a539, type: 3}
   voxelMaterial: {fileID: 2100000, guid: 57c9e54218727e34c9169d8371454d4c, type: 2}

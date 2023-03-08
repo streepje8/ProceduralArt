@@ -25,6 +25,7 @@ public class VoxelFactory : MonoBehaviour
     private ComputeBuffer voxelBuffer;
     private int kernelIndex = 0;
     public Material voxelMaterial;
+    private bool voxelsUpdated = false;
     private void Awake()
     {
         //Setup shaders
@@ -58,11 +59,11 @@ public class VoxelFactory : MonoBehaviour
         voxelBuffer = new ComputeBuffer(amount, Marshal.SizeOf<Voxel>());
         voxelBuffer.SetData(voxels);
         voxelProcessor.SetInt("voxelCount", amount);
-        UpdateVoxels();
     }
 
     private void UpdateVoxels()
     {
+        voxelsUpdated = true;
         voxelProcessor.SetVector("position", transform.position);
         voxelProcessor.SetFloat("deltaTime", Time.deltaTime);
         voxelProcessor.SetFloat("time", Time.time);
@@ -72,7 +73,7 @@ public class VoxelFactory : MonoBehaviour
 
     private void OnRenderObject()
     {
-        UpdateVoxels();
+        if(!voxelsUpdated)UpdateVoxels();
         voxelMaterial.SetPass(0);
         voxelMaterial.SetBuffer("_VoxelData", voxelBuffer);
         Graphics.DrawProceduralNow(MeshTopology.Points,cubeCount);

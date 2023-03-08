@@ -47,7 +47,7 @@ Shader "Wezzel/VoxelRenderer"
 
             struct g2f
             {
-                float2 extraData : TEXCOORD1;
+                float3 extraData : Normal1;
                 float3 normal : Normal0;
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
@@ -137,7 +137,7 @@ Shader "Wezzel/VoxelRenderer"
                         output.vertex = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld,v[vidx]));
                         output.uv = uvs[fv];
                         output.normal = normals[f];
-                        output.extraData = p[0].extraData;
+                        output.extraData = float3(p[0].extraData.x,0,0);
                         UNITY_TRANSFER_FOG(output, output.vertex);
                         triStream.Append(output);
                         vidx++;
@@ -155,18 +155,18 @@ Shader "Wezzel/VoxelRenderer"
             fixed4 frag (g2f i) : SV_Target
             {
                 voxel v = _VoxelData[i.extraData.x];
-                float type = v.type / 10.0;
-                float x = type % _ImagesPerRow;
-                float y = type - (x * _ImagesPerRow);
-                return v.type / 100.0f;
-                return float4(i.uv.x,i.uv.y,type,1);
-                float xUVSize = (1/_ImagesPerRow);
-                float yUVSize = (1/_ImagesPerColumn);
-                float2 textureUVStart = float2(x * xUVSize, y * yUVSize);
-                fixed4 col = tex2D(_ColorTexture, textureUVStart + i.uv * float2(xUVSize,yUVSize));
-                col *= (dot(i.normal,_WorldSpaceLightPos0) + 1) / 2;
-                UNITY_APPLY_FOG(i.fogCoord, col);
-                return col;
+                // float type = v.type / 10.0;
+                // float x = type % _ImagesPerRow;
+                // float y = type - (x * _ImagesPerRow);
+                return float4(v.type,0,0,1);
+                // return float4(i.uv.x,i.uv.y,type,1);
+                // float xUVSize = (1/_ImagesPerRow);
+                // float yUVSize = (1/_ImagesPerColumn);
+                // float2 textureUVStart = float2(x * xUVSize, y * yUVSize);
+                // fixed4 col = tex2D(_ColorTexture, textureUVStart + i.uv * float2(xUVSize,yUVSize));
+                // col *= (dot(i.normal,_WorldSpaceLightPos0) + 1) / 2;
+                // UNITY_APPLY_FOG(i.fogCoord, col);
+                // return col;
             }
             ENDCG
         }
