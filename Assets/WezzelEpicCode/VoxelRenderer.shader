@@ -30,6 +30,7 @@ Shader "Wezzel/VoxelRenderer"
             {
                 int type;
                 float3 position;
+                float3 velocity;
             };
             
             struct appdata

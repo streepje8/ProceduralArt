@@ -1,24 +1,132 @@
 #pragma kernel CSMain
+//#pragma kernel Init
 
 float3 position;
 float deltaTime;
 float time;
 int voxelCount;
+
 struct voxel
 {
     int type;
     float3 position;
+    float3 velocity;
 };
 
 RWStructuredBuffer<voxel> _VoxelData;
 
+/* For more info on this code, see the CSMain function
+// int cellSize;
+// int3 gridSize = int3(300, 300, 300);
+// Tried something cool with Octrees for speed, sadly this was slower than just not doing it so i killed the system
+// static voxel voxelMap[][][][];
+// static int voxelMapCounts[][][];
+//RWStructuredBuffer<int> _CellIndices;
+// RWStructuredBuffer<int> _VoxelIndices;
+//
+// [numthreads(1,1,1)]
+// void Init(uint3 id : SV_DispatchThreadID)
+// {
+//     // Initialize the dynamic arrays for each cell
+//     int numCells = gridSize.x * gridSize.y * gridSize.z;
+//     for (int i = 0; i < numCells; i++)
+//     {
+//         _CellIndices[i] = 0;
+//     }
+//     for (int j = 0; j < voxelCount; j++)
+//     {
+//         _VoxelIndices[j] = -1;
+//     }
+// }
+*/
+
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    //Do physics or smtn
+    //Get the current voxel to process
     int ID = id.x + (id.y * (voxelCount/2.0f));
     voxel currentVoxel = _VoxelData[ID];
-    currentVoxel.type = ID;
-    currentVoxel.position = position + float3(sign(position.x) * cos(time + ID + position.z*4)*2,ID,sin(time + ID + position.z*4)*2);
+    int collisionCount = 0;
+    for(int i = 0; i < voxelCount; i++)
+    {
+        voxel otherVoxel = _VoxelData[i];
+        if((currentVoxel.position.x - otherVoxel.position.x)*(currentVoxel.position.x - otherVoxel.position.x) < 1) //Size A plus sizeB
+        {
+            //check the Y axis
+            if((currentVoxel.position.y - otherVoxel.position.y)*(currentVoxel.position.y - otherVoxel.position.y) < 1)
+            {
+                //check the Z axis
+                if((currentVoxel.position.z - otherVoxel.position.z)*(currentVoxel.position.z - otherVoxel.position.z) < 1)
+                {
+                    //currentVoxel.position += (otherVoxel.position - currentVoxel.position);
+                    currentVoxel.position = float3(0.0f,10.0f,0.0f);
+                }
+            }
+        }
+    }
+    
+    /* Tried to optimize the code above (below follow an attempt with and without chatgpt
+    //The attempt with chatGPT (who also gave up on the problem multiple times, so to be honest it was more a collaboration)
+    //int3 cellIndex = floor(currentVoxel.position / cellSize);
+
+    // Store the voxel index in the dynamic array for the corresponding cell
+    // Store the voxel index in the dynamic array for the corresponding cell
+    // InterlockedAdd(_CellIndices[cellIndex.x + cellIndex.y * gridSize.x + cellIndex.z * gridSize.x * gridSize.y], 1);
+    // int cellArrayIndex = _CellIndices[cellIndex.x + cellIndex.y * gridSize.x + cellIndex.z * gridSize.x * gridSize.y] - 1;
+    // _VoxelIndices[cellIndex.x + cellIndex.y * gridSize.x + cellIndex.z * gridSize.x * gridSize.y + cellArrayIndex] = ID;
+    //
+    // // // Retrieve all voxels in the same cell
+    // int cellArrayStartIndex = 0;
+    // for (int z = 0; z < cellIndex.z; z++)
+    //     cellArrayStartIndex += _CellIndices[cellIndex.x + cellIndex.y * gridSize.x + z * gridSize.x * gridSize.y];
+    // for (int y = 0; y < cellIndex.y; y++)
+    //     cellArrayStartIndex += _CellIndices[cellIndex.x + y * gridSize.x + cellIndex.z * gridSize.x * gridSize.y];
+    // cellArrayStartIndex += _CellIndices[cellIndex.x + cellIndex.y * gridSize.x + cellIndex.z * gridSize.x * gridSize.y];
+    // //
+    // int cellArrayEndIndex = cellArrayStartIndex + _CellIndices[cellIndex.x + cellIndex.y * gridSize.x + cellIndex.z * gridSize.x * gridSize.y];
+    // //
+    // for (int i = cellArrayStartIndex; i < cellArrayEndIndex; i++)
+    // {
+    //     int voxelIndex = _VoxelIndices[i];
+    //     voxel otherVoxel = _VoxelData[voxelIndex];
+    //     collisionCount++;
+    //     // if((currentVoxel.position.x - otherVoxel.position.x)*(currentVoxel.position.x - otherVoxel.position.x) < 4) //Size A plus sizeB
+    //     // {
+    //     //     //check the Y axis
+    //     //     if((currentVoxel.position.y - otherVoxel.position.y)*(currentVoxel.position.y - otherVoxel.position.y) < 4)
+    //     //     {
+    //     //         //check the Z axis
+    //     //         if((currentVoxel.position.z - otherVoxel.position.z)*(currentVoxel.position.z - otherVoxel.position.z) < 4)
+    //     //         {
+    //     //             collisionCount++;
+    //     //         }
+    //     //     }
+    //     // }
+    // }
+    //
+    // My other try (i gave up on this)
+    // int3 cellPosition = int3(currentVoxel.position.x * 100 / cellSize,currentVoxel.position.y * 100 / cellSize,currentVoxel.position.z * 100 / cellSize);
+    // if(cellPosition != currentVoxel.lastCell) //Voxel changed cell
+    // {
+    //     voxelMapCounts[cellPosition.x][cellPosition.y][cellPosition.z]--;
+    //     int count = voxelMapCounts[cellPosition.x][cellPosition.y][cellPosition.z];
+    //     count++;
+    //     voxelMap[cellPosition.x][cellPosition.y][cellPosition.z][count] = currentVoxel;
+    //     voxelMapCounts[cellPosition.x][cellPosition.y][cellPosition.z] = count;
+    //     currentVoxel.lastCell = cellPosition;
+    //     currentVoxel.lastCellIndex = count;
+    // }
+    */
+
+    currentVoxel.velocity -= float3(0,1.0f,0) * deltaTime;
+    currentVoxel.position += currentVoxel.velocity * deltaTime;
+    if(currentVoxel.position.y < 0.0f)
+    {
+        currentVoxel.position.y = 0.0f;
+        currentVoxel.velocity = 0.0f;
+    }
+    
+    //currentVoxel.type = ID;
+    //currentVoxel.position = position + float3(sign(position.x) * cos(time + ID + position.z*4)*2,ID,sin(time + ID + position.z*4)*2);
     _VoxelData[ID] = currentVoxel;
 }
